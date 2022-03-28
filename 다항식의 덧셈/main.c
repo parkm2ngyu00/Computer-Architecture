@@ -16,6 +16,8 @@ int main(void)
         fgets(str, MAX_LEN, fs);
         char *ptr = strtok(str, " ");
         int i = 0;
+        if (ptr[0] == 'H')
+            break;  
         while (ptr != NULL)
         {
             strcpy(operation[i], ptr);
