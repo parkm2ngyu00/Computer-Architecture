@@ -6,7 +6,7 @@
 
 int main(void)
 {
-    char operation[3][10];
+    char operation[3][MAX_LEN];
     long R0, R1, R2;
     FILE *fs;
     fs = fopen("input.txt", "r");
