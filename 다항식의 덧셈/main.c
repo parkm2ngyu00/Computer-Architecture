@@ -33,20 +33,23 @@ int main(void)
         {
         case '+':
             R0 = ft_add(R1, R2);
+            printf("R0 : %d = %d %c %d\n", R0, R1, operation[0][0], R2);
             break;
         case '-':
             R0 = ft_sub(R1, R2);
+            printf("R0 : %d = %d %c %d\n", R0, R1, operation[0][0], R2);
             break;
         case '*':
             R0 = ft_mul(R1, R2);
+            printf("R0 : %d = %d %c %d\n", R0, R1, operation[0][0], R2);
             break;
         case '/':
             R0 = ft_div(R1, R2);
+            printf("R0 : %d = %d %c %d\n", R0, R1, operation[0][0], R2);
             break;
         default:
             break;
         }
-        printf("R0 : %d = %d %c %d\n", R0, R1, operation[0][0], R2);
     }
     fclose(fs);
 
