@@ -6,6 +6,6 @@ long ft_add(long x, long y);
 long ft_sub(long x, long y);
 long ft_mul(long x, long y);
 long ft_div(long x, long y);
-void move(char index, long result);
+long compare(long x, long y);
 
 #endif
