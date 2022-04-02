@@ -6,16 +6,17 @@
 
 long R0, R1, R2, R3, R4, R5, R6, R7, R8, R9;
 
-int getTotalLine(char *name) {
-  FILE *fp;
-  int line=0;
-  char c;
-  fp=fopen(name,"r");
-  while((c=fgetc(fp)) != EOF)
-    if(c=='\n')
-        line++;
-  fclose(fp);
-  return(line);
+int getTotalLine(char *name)
+{
+    FILE *fp;
+    int line = 0;
+    char c;
+    fp = fopen(name, "r");
+    while ((c = fgetc(fp)) != EOF)
+        if (c == '\n')
+            line++;
+    fclose(fp);
+    return (line);
 }
 
 void move(char index, long result)
@@ -66,7 +67,7 @@ void move(char index, long result)
 int main(void)
 {
     int totalLine = getTotalLine("input.txt") + 1;
-    char operation[2][MAX_LEN];
+    char operation[3][MAX_LEN];
     FILE *fs;
     fs = fopen("input.txt", "r");
     while (feof(fs) == 0)
@@ -94,17 +95,18 @@ int main(void)
             R9 = strtol(operation[2], NULL, 16);
             move(operation[1][1], R9);
         }
-        else if (operation[0][0] == 'C') {
+        else if (operation[0][0] == 'C')
+        {
             R1 = strtol(operation[1], NULL, 16);
             R2 = strtol(operation[2], NULL, 16);
             R0 = compare(R1, R2);
             printf("R0 : %d\n", R0);
         }
-        else if (operation[0][0] == 'J') {
-
+        else if (operation[0][0] == 'J')
+        {
         }
-        else if (operation[0][0] == 'B') {
-            
+        else if (operation[0][0] == 'B')
+        {
         }
     }
     fclose(fs);
