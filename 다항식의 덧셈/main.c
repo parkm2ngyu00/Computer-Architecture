@@ -66,7 +66,7 @@ void move(char index, long result)
 int main(void)
 {
     int totalLine = getTotalLine("input.txt") + 1;
-    char operation[3][MAX_LEN];
+    char operation[2][MAX_LEN];
     FILE *fs;
     fs = fopen("input.txt", "r");
     while (feof(fs) == 0)
