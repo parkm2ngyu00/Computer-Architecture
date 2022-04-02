@@ -25,43 +25,35 @@ void move(char index, long result)
     {
     case '1':
         R1 = result;
-        printf("R1 : %d\n", R1);
         break;
     case '2':
         R2 = result;
-        printf("R2 : %d\n", R2);
         break;
     case '3':
         R3 = result;
-        printf("R3 : %d\n", R3);
         break;
     case '4':
         R4 = result;
-        printf("R4 : %d\n", R4);
         break;
     case '5':
         R5 = result;
-        printf("R5 : %d\n", R5);
         break;
     case '6':
         R6 = result;
-        printf("R6 : %d\n", R6);
         break;
     case '7':
         R7 = result;
-        printf("R7 : %d\n", R7);
         break;
     case '8':
         R8 = result;
-        printf("R8 : %d\n", R8);
         break;
     case '9':
         R9 = result;
-        printf("R9 : %d\n", R9);
         break;
     default:
         break;
     }
+    printf("R%c : %d\n", index, result);
 }
 
 int main(void)
