@@ -6,6 +6,8 @@
 
 long R0, R1, R2, R3, R4, R5, R6, R7, R8, R9;
 
+char buffer[MAX_LEN];
+
 int getTotalLine(char *name)
 {
     FILE *fp;
@@ -56,17 +58,21 @@ void move(char index, long result)
     printf("R%c : %d\n", index, result);
 }
 
-int main(void)
+void openAndReadFile(int line)
 {
     int totalLine = getTotalLine("input.txt") + 1;
     char operation[3][MAX_LEN];
+    int currentLine = 1;
     FILE *fs;
     fs = fopen("input.txt", "r");
-    while (feof(fs) == 0)
+    while (fgets(buffer, MAX_LEN, fs) != NULL)
     {
-        char str[MAX_LEN];
-        fgets(str, MAX_LEN, fs);
-        char *ptr = strtok(str, " ");
+        if (currentLine < line)
+        {
+            currentLine += 1;
+            continue;
+        }
+        char *ptr = strtok(buffer, " ");
         int i = 0;
         if (ptr[0] == 'H')
             break;
@@ -96,13 +102,20 @@ int main(void)
         }
         else if (operation[0][0] == 'J')
         {
-            R9 = strtol(operation[2], NULL, 16);
+            R9 = strtol(operation[1], NULL, 16);
             fclose(fs);
+            openAndReadFile(R9);
         }
         else if (operation[0][0] == 'B')
         {
         }
+        currentLine += 1;
     }
     fclose(fs);
+};
+
+int main(void)
+{
+    openAndReadFile(1);
     return 0;
 }
