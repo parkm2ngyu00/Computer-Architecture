@@ -96,6 +96,8 @@ int main(void)
         }
         else if (operation[0][0] == 'J')
         {
+            R9 = strtol(operation[2], NULL, 16);
+            fclose(fs);
         }
         else if (operation[0][0] == 'B')
         {
