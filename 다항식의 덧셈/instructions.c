@@ -50,3 +50,7 @@ long calculater(char operation, long x, long y)
 long compare(long x, long y) {
     return (x >= y) ? 1 : 0;
 }
+
+long same(long x, long y) {
+    return (x == y) ? 1 : 0;
+}
