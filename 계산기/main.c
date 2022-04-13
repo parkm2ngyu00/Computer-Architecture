@@ -67,11 +67,11 @@ void move(char index, long result)
 // 매개변수로 받은 값의 줄부터 파일 read를 시작한다(나중에 Jump instruction을 위해 쓰인다.)
 void openAndReadFile(int line)
 {
-    int totalLine = getTotalLine("gcd.txt") + 1;
+    int totalLine = getTotalLine("input.txt") + 1;
     char operation[3][MAX_LEN];
     int currentLine = 1;
     FILE *fs;
-    fs = fopen("gcd.txt", "r");
+    fs = fopen("input.txt", "r");
     while (fgets(buffer, MAX_LEN, fs) != NULL)
     {
         // 매개변수로 받은 line 값보다 현재 currentLine 이 작다면, 다음 줄로 넘어간다.
