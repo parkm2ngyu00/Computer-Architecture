@@ -1,0 +1,12 @@
+gcd 0xf 0x5
+S R1 R2
+B 0xc
+C R1 R2
+B 0x9
+- R2 R1
+M R2 R0
+J 0x2
+- R1 R2
+M R1 R0
+J 0x2
+M R0 R1
