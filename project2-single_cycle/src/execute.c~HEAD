@@ -37,7 +37,7 @@ int calc_JumpAddr(unsigned int addr, unsigned int PC)
     return (addr);
 }
 
-int ALUOP(inst_fmt FMT, sig SIG, unsigned int OPCODE, unsigned int PC, int *R)
+int ALUOP(inst_fmt FMT, signal SIG, unsigned int OPCODE, unsigned int PC, int *R)
 {
     int rst;
     int SignExtImm;
@@ -108,7 +108,7 @@ int ALUOP(inst_fmt FMT, sig SIG, unsigned int OPCODE, unsigned int PC, int *R)
     return (rst);
 }
 
-int EXECUTE(inst_fmt FMT, int *R, unsigned int OPCODE, unsigned int PC, CNT *cnt, sig SIG)
+int EXECUTE(inst_fmt FMT, int *R, unsigned int OPCODE, unsigned int PC, CNT *cnt, signal SIG)
 {
     int rst;
 

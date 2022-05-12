@@ -1,6 +1,6 @@
 #include "single_cycle.h"
 
-int MUX_REGDst(sig SIG, inst_fmt FMT)
+int MUX_REGDst(signal SIG, inst_fmt FMT)
 {
     if (SIG.RegDst)
         return (FMT.RD);
@@ -8,7 +8,7 @@ int MUX_REGDst(sig SIG, inst_fmt FMT)
         return (FMT.RT);
 }
 
-int MUX_ALUSrc(sig SIG, inst_fmt FMT, int *R)
+int MUX_ALUSrc(signal SIG, inst_fmt FMT, int *R)
 {
     if (SIG.ALUSrc)
         return (FMT.IMM);
@@ -16,7 +16,7 @@ int MUX_ALUSrc(sig SIG, inst_fmt FMT, int *R)
         return (R[FMT.RT]);
 }
 
-int MUX_MemtoReg(sig SIG, int MEM_value, int ALU_rst)
+int MUX_MemtoReg(signal SIG, int MEM_value, int ALU_rst)
 {
     if (SIG.MemtoReg)
         return (MEM_value);
@@ -24,7 +24,7 @@ int MUX_MemtoReg(sig SIG, int MEM_value, int ALU_rst)
         return (ALU_rst);
 }
 
-int MUX_PCSrc1(sig SIG, int JumpAddr, int BR)
+int MUX_PCSrc1(signal SIG, int JumpAddr, int BR)
 {
     if (SIG.PCSrc1)
         return (JumpAddr);
@@ -32,7 +32,7 @@ int MUX_PCSrc1(sig SIG, int JumpAddr, int BR)
         return (BR);
 }
 
-int MUX_PCSrc2(sig SIG, unsigned int PC, int BranchAddr)
+int MUX_PCSrc2(signal SIG, unsigned int PC, int BranchAddr)
 {
     if (SIG.PCSrc2)
         return (PC + 4 + BranchAddr);

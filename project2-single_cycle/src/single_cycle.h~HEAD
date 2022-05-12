@@ -34,7 +34,7 @@ typedef struct CONTROL_SIGNAL
     int MemWrite;
     int ALUSrc;
     int RegWrite;
-} sig;
+} signal;
 
 typedef struct COUNT
 {
@@ -51,21 +51,21 @@ int SET_INST_MEM(int argc, char *argv[], int *MEM);
 unsigned int FETCH(unsigned int PC, int *MEM);
 // functions in decode.c
 char format(unsigned OPCODE);
-inst_fmt DECODE(unsigned int INSTRUCTION, unsigned int OPCODE, sig *SIG);
+inst_fmt DECODE(unsigned int INSTRUCTION, unsigned int OPCODE, signal *SIG);
 // functions in execute.c
 int calc_SignExtImm(unsigned int imm);
 int calc_BranchAddr(unsigned int imm);
 int calc_JumpAddr(unsigned int addr, unsigned int PC);
-int EXECUTE(inst_fmt FMT, int *R, unsigned int OPCODE, unsigned int PC, CNT *cnt, sig SIG);
+int EXECUTE(inst_fmt FMT, int *R, unsigned int OPCODE, unsigned int PC, CNT *cnt, signal SIG);
 // functions in memory_access.c
-int MEMORY_ACCESS(int *MEM, inst_fmt FMT, int *R, CNT *cnt, sig SIG, int ALU_rst);
+int MEMORY_ACCESS(int *MEM, inst_fmt FMT, int *R, CNT *cnt, signal SIG, int ALU_rst);
 // functions in write_back.c
-void WB(int *R, int ALU_rst, sig SIG, int MEM_value, inst_fmt FMT);
-// functions in control_sig.c
-int MUX_REGDst(sig SIG, inst_fmt FMT);
-int MUX_ALUSrc(sig SIG, inst_fmt FMT, int *R);
-int MUX_MemtoReg(sig SIG, int MEM_value, int ALU_rst);
-int MUX_PCSrc1(sig SIG, int JumpAddr, int BR);
-int MUX_PCSrc2(sig SIG, unsigned int PC, int BranchAddr);
+void WB(int *R, int ALU_rst, signal SIG, int MEM_value, inst_fmt FMT);
+// functions in MUX.c
+int MUX_REGDst(signal SIG, inst_fmt FMT);
+int MUX_ALUSrc(signal SIG, inst_fmt FMT, int *R);
+int MUX_MemtoReg(signal SIG, int MEM_value, int ALU_rst);
+int MUX_PCSrc1(signal SIG, int JumpAddr, int BR);
+int MUX_PCSrc2(signal SIG, unsigned int PC, int BranchAddr);
 
 #endif

@@ -1,6 +1,6 @@
 #include "single_cycle.h"
 
-int MEMORY_ACCESS(int *MEM, inst_fmt FMT, int *R, CNT *cnt, sig SIG, int ALU_rst)
+int MEMORY_ACCESS(int *MEM, inst_fmt FMT, int *R, CNT *cnt, signal SIG, int ALU_rst)
 {
     int MEM_value;
 

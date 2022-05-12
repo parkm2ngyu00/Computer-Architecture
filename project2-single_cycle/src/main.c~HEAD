@@ -31,7 +31,7 @@ void INIT_CNT(CNT *cnt)
     cnt->num_taken_branch = 0;
 }
 
-void INIT_control_signal(sig *SIG)
+void INIT_control_signal(signal *SIG)
 {
     SIG->PCSrc1 = 0;
     SIG->PCSrc2 = 0;
@@ -45,7 +45,7 @@ void INIT_control_signal(sig *SIG)
     SIG->RegWrite = 0;
 }
 
-int PC_Change(inst_fmt FMT, sig SIG, CNT *cnt, unsigned int OPCODE, unsigned int PC, int ALU_rst, int *R)
+int PC_Change(inst_fmt FMT, signal SIG, CNT *cnt, unsigned int OPCODE, unsigned int PC, int ALU_rst, int *R)
 {
     int JumpAddr;
     int BranchAddr;
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
     unsigned int PC;
     unsigned int INSTRUCTION;
     inst_fmt FMT;
-    sig SIG;
+    signal SIG;
     CNT cnt;
 
     MEM = INIT_MEM();

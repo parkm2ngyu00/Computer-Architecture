@@ -37,7 +37,7 @@ void set_inst_fmt(inst_fmt *FMT, unsigned int inst, unsigned int OPCODE, char fo
     }
 }
 
-void set_control_signal(unsigned int OPCODE, inst_fmt FMT, sig *SIG)
+void set_control_signal(unsigned int OPCODE, inst_fmt FMT, signal *SIG)
 {
     if (OPCODE == 0)
         SIG->RegDst = 1;
@@ -58,7 +58,7 @@ void set_control_signal(unsigned int OPCODE, inst_fmt FMT, sig *SIG)
         SIG->Branch = 1;
 }
 
-inst_fmt DECODE(unsigned int INSTRUCTION, unsigned int OPCODE, sig *SIG)
+inst_fmt DECODE(unsigned int INSTRUCTION, unsigned int OPCODE, signal *SIG)
 {
     inst_fmt fmt;
 
