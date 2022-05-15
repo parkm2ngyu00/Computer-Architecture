@@ -1,120 +1,227 @@
-#include "single_cycle.h"
-
-int *INIT_MEM(void)
-{
-    int *MEM;
-
-    int MEM_SIZE = INIT_SP / 4;
-    if (!(MEM = (int *)malloc(sizeof(int) * MEM_SIZE)))
-        return (0);
-    return (MEM);
-}
-
-int *INIT_REG(void)
-{
-    int *R;
-
-    if (!(R = (int *)malloc(sizeof(int) * 32)))
-        return (0);
-    R[29] = INIT_SP;
-    R[31] = INIT_LR;
-    return (R);
-}
-
-void INIT_CNT(CNT *cnt)
-{
-    cnt->num_executed_inst = 0;
-    cnt->num_R_type = 0;
-    cnt->num_I_type = 0;
-    cnt->num_J_type = 0;
-    cnt->num_MEM_access = 0;
-    cnt->num_taken_branch = 0;
-}
-
-void INIT_control_signal(sig *SIG)
-{
-    SIG->PCSrc1 = 0;
-    SIG->PCSrc2 = 0;
-    SIG->bcond = 0;
-    SIG->RegDst = 0;
-    SIG->Branch = 0;
-    SIG->MemRead = 0;
-    SIG->MemtoReg = 0;
-    SIG->MemWrite = 0;
-    SIG->ALUSrc = 0;
-    SIG->RegWrite = 0;
-}
-
-int PC_Change(inst_fmt FMT, sig SIG, CNT *cnt, unsigned int OPCODE, unsigned int PC, int ALU_rst, int *R)
-{
-    int JumpAddr;
-    int BranchAddr;
-    int BR;
-
-    if (SIG.Branch && ALU_rst) // ALU_rst is evaluated in ALU, 1 or 0 (in case of SIG.Branch == 1)
-    {
-        cnt->num_taken_branch++;
-        SIG.PCSrc2 = 1;
-    }
-    JumpAddr = calc_JumpAddr(FMT.ADDR, PC);
-    BranchAddr = calc_BranchAddr(FMT.IMM);
-    BR = MUX_PCSrc2(SIG, PC, BranchAddr);
-    PC = MUX_PCSrc1(SIG, JumpAddr, BR);
-    if ((OPCODE == 0) && (FMT.FUNCT == 0x8))
-        PC = ALU_rst;
-    if ((OPCODE == 0) && (FMT.FUNCT == 0x9))
-        PC = R[FMT.RS];
-    return (PC);
-}
-
-void print_final(int *R, CNT cnt)
-{
-    printf("Final return value:\t\t\t%d\n", R[2]);
-    printf("Number of executed instructions:\t%d\n", cnt.num_executed_inst);
-    printf("Number of R-type instructions:\t\t%d\n", cnt.num_R_type);
-    printf("Number of I-type instructions:\t\t%d\n", cnt.num_I_type);
-    printf("Number of J-type instructions:\t\t%d\n", cnt.num_J_type);
-    printf("Number of memory access instructions: \t%d\n", cnt.num_MEM_access);
-    printf("Number of taken branches:\t\t%d\n", cnt.num_taken_branch);
-}
+#include "mips.h"
 
 int main(int argc, char *argv[])
 {
-    int *MEM;
-    int *R;
-    int ALU_rst;
-    int MEM_value;
-    unsigned int OPCODE;
-    unsigned int PC;
-    unsigned int INSTRUCTION;
-    inst_fmt FMT;
-    sig SIG;
-    CNT cnt;
+    // initialize
+    PROGRAM = argv[1];
+    init_all();
+    printf("****************single cycle****************\n");
 
-    MEM = INIT_MEM();
-    R = INIT_REG();
-    INIT_CNT(&cnt);
-    if (!SET_INST_MEM(argc, argv, MEM))
-        return (0);
-    PC = 0;
-    ALU_rst = 0;
-    MEM_value = 0;
-    while (PC != 0xffffffff)
+    while (PC < 0xffffffff)
     {
-        INIT_control_signal(&SIG);
-        INSTRUCTION = FETCH(PC, MEM);
-        OPCODE = (INSTRUCTION & 0xfc000000) >> 26;
-        FMT = DECODE(INSTRUCTION, OPCODE, &SIG);
-        ALU_rst = EXECUTE(FMT, R, OPCODE, PC, &cnt, SIG);
-        MEM_value = MEMORY_ACCESS(MEM, FMT, R, &cnt, SIG, ALU_rst);
-        WB(R, ALU_rst, SIG, MEM_value, FMT);
-        PC = PC_Change(FMT, SIG, &cnt, OPCODE, PC, ALU_rst, R);
-        printf("updated PC: 0x%x\n\n", PC);
+        // instruction fetch (IF)
+        inst_count++;
+        IR = IM_ReadMemory(PC);
+        printf("----------------------------------------------------------------------\n");
+        printf("Cycle: %d\n", inst_count);
+        printf("[Fetch]   %x: %08x\n", PC, IR);
+
+        // instruction decode and register operand fetch (ID / RF)
+        Inst_Decode();
+        Print_Decode();
+        RF_Read(inst->rs, inst->rt);
+        CU_Operation(inst->opcode, inst->funct);
+
+        // execute / evaluate memory address (EX / AG)
+        inst->immediate = MUX(ZeroExtend(inst->immediate), SignExtend(inst->immediate), SignEx);
+        ALUControl = ALU_Control(ALUOp, MUX(inst->opcode, inst->funct, Rtype));
+        ALUResult = ALU_Operation(ALUControl, MUX(ReadData1, ReadData2, Shift),
+                                  MUX(MUX(ReadData2, inst->immediate, ALUSrc), inst->shamt, Shift));
+
+        // memory operand fetch (MEM)
+        DM_MemoryAccess(ALUResult, 32, ReadData2, MemRead, MemWrite);
+
+        // store / writeback result (WB)
+        RF_Write(MUX(MUX(inst->rt, inst->rd, RegDst), ra, RA), MUX(MUX(ALUResult, ReadData, MemtoReg), PCAddr(PC), JumpLink), RegWrite);
+
+        // PC update
+        Branch = MUX(ALUResult && Branch, !ALUResult && Branch, Equal);
+        PC = MUX(MUX(MUX(PCAddr(PC), BranchAddr(PC, inst->immediate), Branch),
+                     JumpAddr(PC, inst->address), Jump),
+                 ReadData1, JumpReg);
+
+        // show user visible architecture state
+        Print_Execute();
     }
-    printf("PC: 0xffffffff, HALT!\n==========================================\n");
-    print_final(R, cnt);
-    // free
-    free(MEM);
-    free(R);
-    return (0);
+    terminate();
+    return 0;
+}
+
+// init CPU
+void init_all()
+{
+    RF_Init();
+    IM_Init();
+    CU_Init();
+    DM_Init();
+    inst_count = 0;
+    IR = 0x00000000;
+    PC = 0x00000000;
+    inst = (instruction *)malloc(sizeof(instruction));
+}
+
+// terminate CPU
+void terminate()
+{
+    printf("\n******************result*********************\n");
+    printf("(1) Final return value: %d\n", Register[2]);
+    printf("(2) Number of executed instruction: %d\n", inst_count);
+    printf("(3) Number of executed R type instruction: %d\n", R_count);
+    printf("(4) Number of executed I type instruction: %d\n", I_count);
+    printf("(5) Number of executed J type instruction: %d\n", J_count);
+    printf("(6) Number of executed memory access instruction: %d\n", M_count);
+    printf("(7) Number of executed taken branches instruction: %d\n", B_count);
+    printf("*********************************************\n");
+
+    free(inst);
+}
+
+// instruction decode
+void Inst_Decode()
+{
+    inst->opcode = (IR >> 26) & 0x3f;
+    inst->rs = (IR >> 21) & 0x1f;
+    inst->rt = (IR >> 16) & 0x1f;
+    inst->rd = (IR >> 11) & 0x1f;
+    inst->shamt = (IR >> 6) & 0x1f;
+    inst->funct = (IR >> 0) & 0x3f;
+    inst->immediate = (IR >> 0) & 0xffff;
+    inst->address = (IR >> 0) & 0x3ffffff;
+}
+
+// multiplexer (MUX)
+unsigned int MUX(unsigned int IN1, unsigned int IN2, bool S)
+{
+    return S ? IN2 : IN1;
+}
+
+// print decode
+void Print_Decode()
+{
+    enum inst_type type;
+    switch (inst->opcode)
+    {
+    case 0x00:
+        type = R_type;
+        break;
+    case 0x02:
+    case 0x03:
+        type = J_type;
+        break;
+    default:
+        type = I_type;
+        break;
+    }
+
+    switch (type)
+    {
+    case J_type:
+        J_count++;
+        printf("[Decode]  opcode(%02x) address: %x\n", inst->opcode, inst->address);
+        break;
+    case I_type:
+        I_count++;
+        printf("[Decode]  opcode(%02x) rs: %x rt: %x immediate: %x\n", inst->opcode, inst->rs, inst->rt, inst->immediate);
+        break;
+    case R_type:
+        if (IR != 0x0)
+            R_count++;
+        printf("[Decode]  opcode(%02x) rs: %x rt: %x rd: %x shamt: %x funct(%x)\n", inst->opcode, inst->rs, inst->rd, inst->rt, inst->shamt, inst->funct);
+        break;
+    }
+}
+
+// print execute
+void Print_Execute()
+{
+    switch (inst->opcode)
+    {
+    // I type
+    case ADDI:
+    case ADDIU:
+        printf("[Execute] R[%d]: %08x = R[%d] + %08x\n", inst->rt, Register[inst->rt], inst->rs, inst->immediate);
+        break;
+    case ANDI:
+        printf("[Execute] R[%d]: %08x = R[%d] & %08x\n", inst->rt, Register[inst->rt], inst->rs, inst->immediate);
+        break;
+    case BEQ:
+        B_count++;
+        if (Branch == true)
+            printf("[Execute] Jump to  %08x = R[%d] == R[%d]\n", PC, inst->rs, inst->rt);
+        else
+            printf("[Execute] Branch equal X = R[%d] != R[%d]\n", inst->rs, inst->rt);
+        break;
+    case BNE:
+        B_count++;
+        if (Branch == true)
+            printf("[Execute] Branch not equal X = R[%d] == R[%d]\n", inst->rs, inst->rt);
+        else
+            printf("[Execute] Jump to  %08x = R[%d] != R[%d]\n", PC, inst->rs, inst->rt);
+        break;
+    case LUI:
+        printf("[Execute] R[%d]: %08x = R[%d] << 16\n", inst->rt, Register[inst->rt], inst->immediate);
+        break;
+    case LW:
+        M_count++;
+        printf("[Execute] R[%d]: %08x = M[R[%d] + %08x]\n", inst->rt, Register[inst->rt], inst->rs, inst->immediate);
+        break;
+    case ORI:
+        printf("[Execute] R[%d]: %08x = R[%d] | %08x\n", inst->rt, Register[inst->rt], inst->rs, inst->immediate);
+        break;
+    case SLTI:
+    case SLTIU:
+        printf("[Execute] R[%d]: %d = (R[%d] < %08x)? 1 : 0\n", inst->rt, Register[inst->rt], inst->rs, inst->immediate);
+        break;
+    case SW:
+        M_count++;
+        printf("[Execute] M[R[%d] + %08x]: %08x = R[%d]\n", inst->rs, inst->immediate, Register[inst->rt], inst->rt);
+        break;
+
+    // J type
+    case J:
+        printf("[Execute] Jump to %08x\n", PC);
+        break;
+    case JAL:
+        printf("[Execute] R[31]: %08x; PC: %08x\n", Register[31], PC);
+        break;
+
+    // R type
+    case 0x00:
+        switch (inst->funct)
+        {
+        case ADD:
+        case ADDU:
+            printf("[Execute] R[%d]: %08x = R[%d] + R[%d]\n", inst->rd, Register[inst->rd], inst->rs, inst->rt);
+            break;
+        case AND:
+            printf("[Execute] R[%d]: %08x = R[%d] & R[%d]\n", inst->rd, Register[inst->rd], inst->rs, inst->rt);
+            break;
+        case JR:
+            printf("[Execute] PC: %08x = R[%d]\n", PC, inst->rs);
+            break;
+        case JALR:
+            printf("[Execute] R[31]: %08x; PC: %08x\n", Register[inst->rd], PC);
+            break;
+        case NOR:
+            printf("[Execute] R[%d]: %08x = ~(R[%d] | R[%d])\n", inst->rd, Register[inst->rd], inst->rs, inst->rt);
+            break;
+        case OR:
+            printf("[Execute] R[%d]: %08x = R[%d] | R[%d]\n", inst->rd, Register[inst->rd], inst->rs, inst->rt);
+            break;
+        case SLT:
+        case SLTU:
+            printf("[Execute] R[%d]: %d = (R[%d] + R[%d]) ? 1 : 0\n", inst->rd, Register[inst->rd], inst->rs, inst->rt);
+            break;
+        case SLL:
+            printf("[Execute] R[%d]: %08x = R[%d] << R[%d]\n", inst->rd, Register[inst->rd], inst->rs, inst->rt);
+            break;
+        case SRL:
+            printf("[Execute] R[%d]: %08x = R[%d] >> R[%d]\n", inst->rd, Register[inst->rd], inst->rs, inst->rt);
+            break;
+        case SUB:
+        case SUBU:
+            printf("[Execute] R[%d]: %08x = R[%d] - R[%d]\n", inst->rd, Register[inst->rd], inst->rs, inst->rt);
+            break;
+        }
+    }
 }
